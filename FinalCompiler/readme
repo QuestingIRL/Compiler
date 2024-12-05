@@ -1,1 +1,19 @@
+To run this compiler do the following,
 
+1. Make sure Ubuntu and Bison are downloaded.
+
+2. clone this repository.
+
+3. Navigate to the correct folder with cd.
+
+4. Run the following test programs using 
+
+Make 1
+
+Make 2
+
+Make 3
+
+
+The first two testProg.cmm show the previous compiler's capabilities, the new
+one has the addition of while loops.
