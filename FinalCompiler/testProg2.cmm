@@ -1,8 +1,8 @@
-/* IF's and Else's */
+/* IF ELSE COMPILER */
 
 int x;
 char y;
-x = 20;
+x = 5;
 
 func int addValue(int num1 int num2){
     int result;
@@ -17,8 +17,16 @@ func int main(){
         write result1;
     }
     else{
-        swrite "no change";
+        swrite "This Shouldnt Print";
+    }
+    if (x < 0){
+        swrite "Hello";
+    }
+    else{
+        writeln;
+        swrite "Hello World";
     }
     return 0;
 }
+
 
