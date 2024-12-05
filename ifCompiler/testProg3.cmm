@@ -1,0 +1,19 @@
+int x;
+x = 1;
+int y;
+y = 3;
+
+func int main() {
+	int help;
+	if (x < y) {
+		x = 0;
+	} 
+	else {
+		x = 10;
+	}
+	return x;
+	help = (1 + 8) / 3;
+	testVar = myArray[0];
+	write help;
+	return 0;
+}

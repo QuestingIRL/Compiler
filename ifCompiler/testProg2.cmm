@@ -1,0 +1,74 @@
+int test;
+
+int aNumber;
+float secNum;
+char someLetter;  /* unused variable */
+char message[50];
+
+func float average(float a float b float c){
+	float avg;
+	avg = (a + b + c)/3.0;
+	return avg;
+}
+
+func int unrFunc(float x int y){
+   /* 
+	This function does nothing and should
+	Be removed from IR code in the optimization step
+   */
+
+   int result;
+   result = x*y;
+
+   return result;
+}
+
+func int displayMes(){
+	message[0] = 'I';
+	message[1] = 'x';
+	message[2] = 'c';
+	message[3] = 'a';
+	message[4] = 'n';
+	message[5] = 'x';
+	message[6] = 'p';
+	message[7] = 'r';
+	message[8] = 'i';
+	message[9] = 'n';
+	message[10] = 't';	
+	return 0;
+}
+
+func float ambFunc (float a float b float c){
+
+   /* great optimization opportunity */
+
+   float result;
+ 
+   result = (average(a b c) + average(a b c))/2.0;
+
+   return result;
+}
+
+func int main() {
+justAverage = average(12.5 13.7 25.8);
+aNumber = displayMes();
+write justAverage;
+writeln;
+
+justAverage = justAverage * (justAverage + 2.0);
+justAverage = average(justAverage, 0.0 0.0);
+aNumber = displayMes();
+writeln;
+
+aNumber = displayMes();
+aNumber = aNumber / (aNumber + aNumber * aNumber);
+write aNumber;
+writeln;
+
+justAverage = ambFunc(1.0 2.0 3.0);
+aNumber = displayMes();
+write justAverage;
+writeln;
+
+}
+    
