@@ -1,0 +1,7 @@
+DATA:
+x:   WORD  20
+z:   WORD  5
+t:   WORD  3
+test:   WORD  3
+result:   WORD  0
+result1:   WORD  0

@@ -1,0 +1,23 @@
+int x;
+int z;
+int t;
+int test;
+char y;
+x = 20;
+z = 5;
+t = 3;
+y = a;
+test = x * t;
+
+func int addValue(int num1 int num2){
+     int result;
+     result = num1 + num2;
+     return result;
+}
+func int main(){
+     int result1;
+     write x;
+     result1 = addValue(x 5 3);
+     swrite "result:";
+     write result1;
+}
