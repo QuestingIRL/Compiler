@@ -93,28 +93,24 @@ Program:
 
 DeclList:	
 	Decl DeclList { 
-		// printf("\nTest debug DECLDECLLIST\n");
 		$1->right = $2;
 		$$ = $1;
-		// printf("LINK DECLLIST\n");
-		// printNode($$->right);
 	} 
 	| Decl {
 		$$ = $1;
-		// printf("DECL\n");
 	}
 	
 	| FunDeclList
-;//DeclList --> Decl
+;
 
 Decl: 		
 	VarDecl {}
 
 	| StmtList {
 	}
-;//Decl --> VarDecl & StmtList
+;
 
-VarDeclList: /* EPSILON */ { /*printf("\nNo VarDeclList (EPSILON)\n");*/}
+VarDeclList: {} 
 
 	|	VarDecl VarDeclList	{
 		$1->right = $2;
@@ -123,7 +119,6 @@ VarDeclList: /* EPSILON */ { /*printf("\nNo VarDeclList (EPSILON)\n");*/}
 
 	| VarDecl 
 ;
-//This is unreachable-->Big Pogs
 
 VarDecl: 
 	Type ID SEMICOLON {
@@ -131,16 +126,12 @@ VarDecl:
 		printf("\nRECOGNIZED RULE: VARIABLE declaration %s\n", $2);
 
 
-		// ----- SYMBOL TABLE ----- //
-		symTabAccess();
 		int inSymTab = found($2, currentScope);
-		//printf("looking for %s in symtab - found: %d \n", $2, inSymTab);
 		
 
-		// ------ SEMANTIC CHECKS ------ //
 		if (inSymTab == 0)  {
 			addItem($2, "VAR", $1->nodeType, currentScope);
-			showSymTable();
+			//showSymTable();
 		}
 		else {
 			printf("SEMANTIC ERROR: Var %s is already in the symbol table\n", $2);
@@ -148,29 +139,20 @@ VarDecl:
 		}
 
 
-		// ------  AST  ------ //
 		if (semanticCheckPassed) {
 
 			$$ = AST_Type("TYPE", $1->nodeType, $2);
 
-
-			// ---- CODE GENERATION ---- //
-			// code generation occurs when variable 
-			// recieves a value to save space
-			
 		}
 
 		semanticCheckPassed = 1;
 	}
 	
 
-	// ------ ARRAY DECL ------ //
 	| Type ID LBRACKET INTEGER RBRACKET SEMICOLON {
 		
 		printf("\nRECOGNIZED RULE: ARRAY declaration %s\n\n", $2);
 
-		// ----- SYMBOL TABLE ----- //
-		symTabAccess();
 
 		int inSymTab = found($2, currentScope);
 
@@ -181,36 +163,21 @@ VarDecl:
 				addItem(arrIndex, "ARRAY", $1->nodeType, currentScope);				
 			}
 
-			showSymTable();
+			//showSymTable();
 		} else {
 			printf("SEMANTIC ERROR: Var %s is already in the symbol table\n", $2);
 		}
 
-
-		// ----- AST ----- //
 		char intVal[50]; 
 		sprintf(intVal, "%d", $4);
 		$$ = AST_assignment("ARR", intVal, $2);
 
-
-		// ----- CODE GENERATION ----- //
-		
-		// ---- IR CODE ---- //
-		// emitArrayDecl($2, $4);
-
-
-		// ---- MIPS CODE ---- //
 		emitMIPSArrayDecl($2, $4);
 
 		semanticCheckPassed = 1;
 	} 
-	// | ArrDecl
 ;
 
-//==========================================
-
-//FunDeclList --> FunDecl 
-//                FunDecl FunDeclList
 FunDeclList: 
 	FunDecl 
 
@@ -220,9 +187,6 @@ FunDeclList:
 	}
 ;
 
-//=========================================
-
-//FunDecl ------> Type id ( ParamDecList ) Block
 FunDecl:
 	FUNC Type ID LPAREN {
 
@@ -235,12 +199,8 @@ FunDecl:
 		printf("%s", currentScope);
 		printf(" -------------------\n");
 
-
-		// ----- SYMBOL TABLE ----- //
-		symTabAccess();
 		int inSymTab = found($3, currentScope);
 
-		// ------ SEMANTIC CHECKS ------ //
  		if (inSymTab == 0) {
 			
 			addItem($3, "FUNC", $2->nodeType, currentScope);
@@ -251,35 +211,22 @@ FunDecl:
 			semanticCheckPassed = 0;
 		}
 
-		// ---- MIPS CODE ---- //
 		if (semanticCheckPassed) {
 			emitMIPSFunc($3);
 		}
 
 		semanticCheckPassed = 1;
-
 	} 
 
 	ParamDecList RPAREN Block {
 
-		showSymTable(); //updates for function and parameters
 
-		// ----- AST ----- //
 		if (semanticCheckPassed) {
 			$$ = AST_assignment("FUNC", $2->nodeType, $3);		
 
-			// printNode($$);
-
-			// ---- CODE GENERATION ---- //
-
-			// ---- IR CODE ---- //
-
-
 		}
 
-		// Leave Function in MIPScode.h
 		endOfMIPSFunction($3);
-	
 		semanticCheckPassed = 1;
 		inFunction = 0;
 		maxParam = 0;
@@ -288,13 +235,7 @@ FunDecl:
 	}
 ;
 
-
-//==========================================
-
-
-//ParamDeclList --> epsilon 
-//                  ParamDeclListTail
-ParamDecList: /* EPSILON */ {printf("No ParamDeclList (EPSILON)\n\n");}
+ParamDecList:  {printf("No ParamDeclList (EPSILON)\n\n");}
 
 	| ParamDecListTail {
 		printf("Parameters Detected--->\n");
@@ -303,17 +244,13 @@ ParamDecList: /* EPSILON */ {printf("No ParamDeclList (EPSILON)\n\n");}
 
 ;
 
-//==========================================
-
-//ParamDeclListTail --> ParamDecl 
-//                      ParamDecl, ParamDeclListTail 
 ParamDecListTail: 
 	ParamDecl {	
 
 		if (maxParam < 4) {
 			maxParam++;
 		} else {
-			printf("WARNING!! Too many parameters in FunDecl");
+			printf("Too many parameters in FunDecl");
 		}
 	}
 
@@ -324,26 +261,15 @@ ParamDecListTail:
 
 ;
 
-//==========================================
-
-//ParamDecl ----> Type id
-//                Type id[]
 ParamDecl: 
 	Type ID {
 
 		printf("\nRECOGNIZED RULE: Parameter VARIABLE declaration %s\n\n", $2);
 
-		//Asher's Semantic Checks
-		// ---- Symbol Table ---- //
-		// symTabAccess();
-
-		//Var Decl Check
 		int inSymTab = found($2, currentScope);
-		//printf("looking for %s in symtab - found: %d \n", $2, inSymTab);
 
 		if (inSymTab == 0) {
 			addItem($2, "PARAM", $1->nodeType, currentScope);
-			showSymTable();
 		} 
 		else {
 			printf("\nSEMANTIC ERROR: Var %s is already in the symbol table\n", $2);
@@ -356,21 +282,15 @@ ParamDecl:
 
 ;
 
-//==========================================
-
 Block: 
 	LBRACE DeclList RBRACE {
 		$$ = $2;
 	}
 ;
 
-//==========================================
-
 Type: INT {}
 	| FLOAT {}
 	| CHAR {}
-
-//==========================================
 
 StmtList: 
 	Stmt 
@@ -380,8 +300,6 @@ StmtList:
 		$$ = $1;
 	}
 ;
-
-//==========================================
 
 Stmt: 
 	SEMICOLON {
@@ -401,15 +319,9 @@ Stmt:
 
 		printf("RETURN Statement Recognized!\n");
 
-
-		// ----- AST ----- //
 		$$ = AST_assignment("RETURN", "", $2->RHS);
 
 		char *returnType = $2->nodeType;
-		// printf("value test = %d\n", atoi($2->RHS));
-		// printf("Return type: %s\n", returnType);
-
-		// ---- SYMBOL TABLE ---- //
 	
 		char val[25];
 		if (!strcmp(returnType, "id")) {
@@ -432,17 +344,8 @@ Stmt:
 		printf("\nRECOGNIZED RULE: Write Statement\n");
 
 
-		// ---- AST ---- //
 		$$ = AST_Write("WRITE", "", $2->RHS);
-
-
-		// ---- CODE GENERATION ---- //
-
-		// ------ IR CODE ------ //
 		emitIRWriteId($2->RHS, getVariableType($2->RHS, currentScope));
-		// ------ ¯\_(ツ)_/¯ ------ //
-
-			// ---- MIPS CODE ---- //
 		
 		if (!strcmp($2->nodeType,"id")) {
 
@@ -455,11 +358,9 @@ Stmt:
 			emitMIPSWriteInt(atoi($2->RHS));
 
 		}
-
 		else if (!strcmp($2->nodeType, "char")) {
 
 			emitMIPSWriteId($2->RHS, getVariableType($2->RHS, currentScope));
-
 		}
 		
 	}
@@ -489,7 +390,6 @@ Stmt:
 IfStmt:	
 	IF LPAREN Condition RPAREN Block {
 
-		//skip mips else if condidtion is true
 		emitMIPSEndOfIfBlock(ifCount);
 
 		emitMIPSElseStmt(ifCount);
@@ -513,7 +413,6 @@ IfStmt:
 ;
 
 Else: 
-	// EPSILON
 	{printf("NO ELSE STATEMENT\n\n");}
 	
 	| ELSE  Block {
@@ -529,7 +428,7 @@ WhileLoop:
 
 		onWhile = 1;
 
-		emitMIPSWhile(whileCount); //all this does is change the 'inLoop' value to true
+		emitMIPSWhile(whileCount); 
 
 	} Condition RPAREN Block {
 
@@ -551,10 +450,6 @@ WhileLoop:
 Condition:
 	Primary LOGIC Primary {
 
-		// ----- SEMANTIC CHECKS ----- //
-
-		symTabAccess();
-
 		int inSymTab = found($1, currentScope);
 		int inSymTab2 = found($3, currentScope);
 
@@ -564,34 +459,27 @@ Condition:
 		} else {
 			printf("\nSEMANTIC CHECK PASSED\n");
 			
-			//emitArrayAssignment();
 		}
 
-		// get item types
 		char type1[8]; char type2[8];
 		char val1[10]; char val2[10];
-		//if both primaries are id's ---->
 		if (!strcmp($1->nodeType, "id") && !strcmp($3->nodeType, "id")) {
 			strcpy(type1, getVariableType($1->RHS, currentScope));
 			strcpy(type2, getVariableType($3->RHS, currentScope));
 			strcpy(val1, getValue($1->RHS, currentScope));
 			strcpy(val2, getValue($3->RHS, currentScope));
 		} 
-		// if first primary is an id ---->
 		else if (!strcmp($1->nodeType, "id")) {
 			strcpy(type1, getVariableType($1->RHS, currentScope));
 			strcpy(type2, $3->nodeType);
 			strcpy(val1, getValue($1->RHS, currentScope));
 		}
-		// if second primary is an id ---->
 		else if (!strcmp($3->nodeType, "id")) {
 			strcpy(type1, $1->nodeType);
 			strcpy(type2, getVariableType($3->RHS, currentScope));
 			strcpy(val2, getValue($3->RHS, currentScope));
 		} 
 
-
-		//check if types match
 		if (!strcmp(type1, type2)) {
 
 			printf("TYPES ARE COMPATIBLE\n");
@@ -599,21 +487,14 @@ Condition:
 		} else {
 
 			printf("ERROR TYPE MISMATCH: Attempting to compare %s to %s", type2, type1);
-			// printf("\nTypes are %s", type1);
-			// printf("\nTypes are %s", type2);
 			printf("\n");
 			semanticCheckPassed = 0;
 		}
 
-		// ---- AST ---- //
 		$$ = AST_assignment($2, $1->RHS, $3->RHS);
 		$$->left = $1->nodeType;
 		$$->right = $3->nodeType;
 
-		// may not need this if MIPS stuff works :) 
-		// also... Riley wants to smash his computer screen
-		// (Riley 2 weeks later) - MIPS works but we still need this
-		// and my computer is disfunctional now *smile*.
 		int cond = evalCondition($1, $3, $2);
 
 		printf("%s %s %s is ", $1->RHS, $2, $3->RHS);
@@ -626,8 +507,6 @@ Condition:
 			printf("FALSE\n");
 			goToElse = 1;
 		}
-
-		// ---- CODE GEN ---- //
 
 		if (semanticCheckPassed) {
 
@@ -649,16 +528,12 @@ Condition:
 
 ;
 
-//==========================================
-
 ArrayExpr:
 
 	ID LBRACKET INTEGER RBRACKET EQ Primary {
 
 		printf("\nRECOGNIZED RULE: ARRAY assignment %s\n", $1);
 
-		//Asher's Semantic Checks
-		symTabAccess();
 		int inSymTab = found($1, currentScope);
 
 		if (inSymTab != 0) {
@@ -667,19 +542,10 @@ ArrayExpr:
 		} else {
 			printf("\nSEMANTIC CHECK PASSED\n");
 			
-			//emitArrayAssignment();
 		}
-		// ------ SYMBOL TABLE ------ //
-
-		// Setting array value in the symbol table
 		char arrayStmt[10]; char newVal[10];
 		sprintf(arrayStmt, "%s%s%d%s", $1, $2, $3, $4);
-		// printf("setVal %s\n", $6);
-		// sprintf(newVal, "%d", $6);
 		setItemValue(arrayStmt, $6->RHS, currentScope);
-
-
-		// ----- AST ----- //
 		$$ = AST_assignment("=", arrayStmt, newVal);		
 
 		emitMIPSIntArrayAssign($1, $3, atoi($6->RHS));
@@ -689,10 +555,8 @@ ArrayExpr:
 
 	| ID EQ ID LBRACKET INTEGER RBRACKET {
 
-		symTabAccess();
 		int inSymTab = found($1, currentScope);
 
-		// Getting array value in the symbol table
 		if (inSymTab) {
 
 			char arrayStmt[10]; char newVal[10];
@@ -702,20 +566,14 @@ ArrayExpr:
 			sprintf(newVal, "%d", arrayVal);
 
 
-			// ---- SYMBOL TABLE ---- //
 			setItemValue($1, newVal, currentScope);
-
-
-			// ------ AST ------ //
 			$$ = AST_assignment("=", $1, newVal);
 
-			
 		}
 
 	}
 
 ;
-
 
 Expr: 
 	Primary 
@@ -728,15 +586,10 @@ Expr:
 
 	| UnaryOp Expr { 
 
-		//Asher's Semantic Checls
-		// ------- SYMBOL TABLE ------- //
-		symTabAccess();
 		int inSymTab = found($2->RHS, currentScope);
-		//printf("looking for %s in symtab - found: %d \n", $2, inSymTab);
 		if (inSymTab == 0) {
 			printf("\nSEMANTIC ERROR: Expr %s is NOT in the symbol table\n", $2->nodeType);
 		}
-		showSymTable();
 
 	}
 
@@ -746,17 +599,14 @@ Expr:
 		int inSymTab = found($1, currentScope);
 
 		
-		// Variable to tell if value has been assigned yet; 1 is true
 		int isNullValue = !strcmp(getValue($1, currentScope), "NULL");
 		int isFuncCall = !strcmp($3->LHS, "RETURN");
 
 
-		// ------ SEMANTIC CHECKS ------ //
 		if (!inSymTab) {
 
 			printf("\nSEMANTIC ERROR: Var %s is NOT in the symbol table\n", $1);
 			semanticCheckPassed = 0;
-
 		} 		
 
 		char *type1 = getVariableType($1, currentScope);
@@ -766,18 +616,12 @@ Expr:
 			semanticCheckPassed = 0;
 
 		} 
-
-		// ------- SYMBOL TABLE ------- //
 		if (semanticCheckPassed) {
 			setItemValue($1, $3->RHS, currentScope);
 		}
 		
 
-		// ------ AST ------ //
 		$$ = AST_assignment("=", $1, $3->RHS);
-
-
-		// ------ CODE GENERATION ------ //
 
 		if (semanticCheckPassed) {
 
@@ -785,30 +629,23 @@ Expr:
 
 			if (!strcmp(test, "char")) {
 
-				// ---- IR CODE ---- // 
 				emitIRCharDecl($1, $3->RHS);
 
-				if(isNullValue) { //if val isn't null
+				if(isNullValue) { 
 					setCharVar($1, $3->RHS);
 				} else {
 					emitMIPSCharDecl($1, $3->RHS);
 				}
 
 			}
-
-				// ---- INT CODE ---- // 
 			else if (!strcmp(test, "int")) {
 
-				// ---- IR CODE ---- //
 
 				emitIntVarIR($1, atoi($3->RHS));
 
-
-				// ---- MIPS CODE ---- //
-				if(!isNullValue) { //if val isn't null
+				if(!isNullValue) { 
 
 					if (inFunction && hasMath) {
-						// printf("Setting new var for int\n");
 						setIntVar($1, "$s1");
 					} 					
 
@@ -822,7 +659,6 @@ Expr:
 					
 				} else if (inFunction && hasMath) {
 
-					// printf("Setting new var for int\n");
 					emitIntVar($1, $3->RHS);
 					setIntVar($1, "$s1");
 
@@ -845,8 +681,6 @@ Expr:
 	}
 
 	
-	//ID LBRACKET INTEGER RBRACKET
-
 ;
 
 FunCall:
@@ -859,7 +693,6 @@ FunCall:
 		$$ = AST_assignment("int", "RETURN", returnVal);
 		emitMIPSFuncCall($1);
 		emitMIPSGetReturn();
-		// ---- SEMANTIC CHECKS ---- //
 		
 	}
 
@@ -871,14 +704,12 @@ Primary:
 	}
 
 	| DECIMAL {
-		// printf("float detected: %f\n", $1);
 		char numVal[10];
 		sprintf(numVal, "%f", $1);
 		$$ = AST_assignment("float", "", numVal);
 	}
 	
 	| INTEGER {
-		// printf("int detected\n");
 		char numVal[10];
 		sprintf(numVal, "%d", $1);
 		$$ = AST_assignment("int", "", numVal);
@@ -890,8 +721,6 @@ Primary:
 
 	}
 
-	/* | LPAREN Expr RPAREN  */
-
 ;
 
 MathExpr: 
@@ -901,18 +730,11 @@ MathExpr:
 		
 		char newVal[5];
 
-		// Evaluate expression
 		char opArray[3];
 		sprintf(opArray, "%s", $2);
 
-		// if (inFunction) {
-		// 	emitMIPSEquation($1->RHS, $3->RHS, $2);
-		// } 
 
 		sprintf(newVal, "%d", computeEquation($1, $3, opArray[0]));
-		// sprintf(newVal, "%d", computeEquation(atoi($1->RHS), atoi($3->RHS), opArray[0]));
-
-		// printf("newVal = %s\n", newVal);
 
 		$$ = AST_assignment("int", "", newVal);
 		hasMath = 1;
@@ -923,13 +745,8 @@ MathExpr:
 			
 		char newVal[5];
 
-		// Evaluate expression
 		char opArray[3];
 		sprintf(opArray, "%s", $2);
-
-		// printf("$1 = %s and $3 = %s\n", $1->RHS, $3->RHS);
-
-		// if (inFf
 		
 		sprintf(newVal, "%d", computeEquation($1, $3, opArray[0]));
 
@@ -949,9 +766,7 @@ Trm:
 		
 		char newVal[5];
 
-		// Evaluate expression
 		char opArray[3];
-		//sprintf(opArray, "%s", $2);
 
 		$$ = AST_assignment("int", "", newVal);
 		hasMath = 1;
@@ -963,10 +778,8 @@ Trm:
 		
 		char newVal[5];
 
-		// Evaluate expression
 		char opArray[3];
 		sprintf(opArray, "%s", $2);
-
 
 		$$ = AST_assignment("int", "", newVal);
 		hasMath = 1;
@@ -977,12 +790,10 @@ Trm:
 
 Factor:
 	ID {
-
 		char val[25];
 		strcpy(val, getValue($1, currentScope));
 		if (!strcmp(val, "NULL")) {
 			printf("ERROR: ID %s is null\n", $1);
-			// exit;
 		}
 		$$ = AST_assignment("id", $1 , val);
 	}
@@ -994,7 +805,6 @@ Factor:
 	}
 
 	| LPAREN MathExpr RPAREN {
-		// printf("Factor test\n");
 		printf("MathExpr = %s\n", $2->RHS);
 		$$ = AST_assignment("int", "", $2->RHS);
 	}
@@ -1025,11 +835,6 @@ ParamList:	{}
 
 	} ParamList {}
 ;
-
-
-//=================================================================================================
-
-
 
 UnaryOp: MINUS {printf("\nRECOGNIZED RULE: Unary Operation, NEGATIVE VALUE %s\n", $1);}
 
@@ -1132,7 +937,6 @@ int computeEquation(struct AST* num1, struct AST* num2, char operator) {
 			break;
 	}
 
-
 }
 
 void yyerror(const char* s) {
@@ -1144,11 +948,8 @@ int main(int argc, char**argv)
 {
 
 
-	printf("\n\n##### COMPILER STARTED #####\n\n");
-
-	// Initialize IR File
+	printf("\n\nStart of Compiler\n\n");
 	initIRcodeFile();
-	// Initialize MIPS.h
 	initAssemblyFile();
 	
 	if (argc > 1){
@@ -1162,16 +963,16 @@ int main(int argc, char**argv)
 
 	emitEndOfAssemblyCode();
 
-	printf("\n##### IR CODE GENERATED #####\n\n");
+	// Print Symbol Table
+	printf("\n\nSymbol Table\n\n");
+	showSymTable();
+
+	printf("\nTAC Made\n");
 
 	emitEndOfAssemblyCodeIR();
-	printf("\n##### MIPS CODE GENERATED #####\n\n");
+	printf("\nMIPS Made\n");
 
-	// Merge data and main sections in MIPS
 	appendFiles();
 
-	printf("\n##### COMPILER ENDED #####\n\n");
-
-
-	/* fprintf (GarbageMIPS, "syscall\n"); */
+	printf("\nEnd of Compiler\n");
 }
