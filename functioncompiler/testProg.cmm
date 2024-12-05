@@ -1,0 +1,39 @@
+int x;
+int z;
+int t;
+int test;
+char y;
+x = 20;
+z = 1;
+t = 3;
+y = a;
+test = z * t;
+
+func int multiplyValue(int test1 int test2){
+     int product;
+     product = test1 * test2;
+     return product;
+}
+
+func int addValue(int num1 int num2){
+     int result;
+     result = num1 + num2;
+     return result;
+}
+func int main(){
+     int result1;
+     int result2;
+     swrite "x: ";
+     write x;
+     writeln;
+     swrite "test: ";
+     write test;
+     writeln;
+     result2 = multiplyValue(x 0);
+     result1 = addValue(x 5);
+     swrite "result:";
+     write result1;
+     writeln;
+     swrite "result2:";
+     write result2;
+}
