@@ -8,8 +8,8 @@ parser.tab.c parser.tab.h:	parser.y
 lex.yy.c: lexer.l parser.tab.h
 	flex lexer.l
 
-parser1: lex.yy.c parser.tab.c parser.tab.h symboltable.h ast.h
-	gcc -o parser parser.tab.c lex.yy.c
+parser: lex.yy.c parser.tab.c parser.tab.h symboltable.h ast.h
+	gcc -w -o parser parser.tab.c lex.yy.c
 	./parser testProg.cmm
 
 
