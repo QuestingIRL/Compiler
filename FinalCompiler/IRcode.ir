@@ -1,0 +1,12 @@
+MAIN:
+# -----------------------
+# Printing -----------
+LOAD V0, 1
+LOAD WORD: A0, result1
+SYSTEM CALL
+# -----------------
+#  Done, terminate program.
+
+LOAD V0,10   # call code for terminate
+SYSTEM CALL      # system call (terminate)
+END MAIN
