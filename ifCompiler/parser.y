@@ -1,6 +1,3 @@
-//Even Kliewer, Asher Shores, Riley Monwai
-// CST-405: Compilers
-// Professor Isac Artzi
 
 %{
 //Standard libs
