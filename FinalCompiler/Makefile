@@ -14,15 +14,15 @@ lex.yy.c: lexer.l parser.tab.h
 
 parser1: lex.yy.c parser.tab.c parser.tab.h symbolTable.h AST.h
 	gcc -w -o parser parser.tab.c lex.yy.c
-	./parser testProg4.cmm
+	./parser testProg1.cmm
 
 parser2: lex.yy.c parser.tab.c parser.tab.h symbolTable.h AST.h
 	gcc -w -o parser parser.tab.c lex.yy.c
-	./parser testProg5.cmm
+	./parser testProg2.cmm
 
 parser3: lex.yy.c parser.tab.c parser.tab.h symbolTable.h AST.h
 	gcc -w -o parser parser.tab.c lex.yy.c
-	./parser testProg6.cmm
+	./parser testProg3.cmm
 
 clean:
 	rm -f parser lexer parser.tab.c lex.yy.c parser.tab.h parser.output
