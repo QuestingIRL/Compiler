@@ -1,8 +1,7 @@
-/* Loops */
+/* LOOP COMPILER */
 
 int x;
-char y;
-x = 20;
+x = 15;
 
 func int addValue(int num1 int num2){
    int result;
@@ -12,12 +11,14 @@ func int addValue(int num1 int num2){
 
 func int main(){
    int result1;
-   while (x > 0){
-      result1 = addValue(x 5);
+   while (x > 10){
+      result1 = addValue(x 1);
       swrite "result:";
       write result1;
       writeln;
-      x = x - 5;
+      x = x - 1;
+      swrite "Onto Next Iteration";
+      writeln;
    }
    return 0;
 }
