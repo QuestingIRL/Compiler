@@ -7,40 +7,45 @@
 #include "ast.h"
 #include "tac.h"
 #include "mips.h"
+
+// Forward declarations
 extern int yylex();
 extern int yyparse();
 extern FILE* yyin;
 
+// Function prototypes for additional functionality
 int computeEquation(struct AST* num1, struct AST* num2, char operator);
 int evalCondition(struct AST* x, struct AST* y, char logOp[5]);
 void yyerror(const char* s);
-char currentScope[50] = "GLOBAL"; // global or the name of the function
-char currReturnType[10];
-int semanticCheckPassed = 1; // flags to record correctness of semantic checks
-int goToElse = 0;	// is the condition of if() true?
-int maxParam = 0; 	//max of 3 paramaters
-int paramCount = 0;
-int ifCount = 0;
-int whileCount = 0;
-int onWhile = 0;
-int inFunction = 0;
-int hasMath = 0;
-char mathVal1[10]; char mathVal2[10];
-char conditionString[50];
 
-int stringCount = 0;
-
-
+// Global variables for semantic and runtime state
+char currentScope[50] = "GLOBAL"; // Tracks current scope ("GLOBAL" or function name)
+char currReturnType[10];          // Tracks the expected return type
+int semanticCheckPassed = 1;      // Semantic check success flag
+int goToElse = 0;                 // Tracks if the if() condition is true
+int maxParam = 0;                 // Maximum of 3 parameters
+int paramCount = 0;               // Current parameter count
+int ifCount = 0;                  // Counter for unique if blocks
+int whileCount = 0;               // Counter for unique while loops
+int onWhile = 0;                  // Tracks if currently in a while loop
+int inFunction = 0;               // Tracks if currently inside a function
+int hasMath = 0;                  // Tracks if an expression contains math
+char mathVal1[10];                // First operand in math expression
+char mathVal2[10];                // Second operand in math expression
+char conditionString[50];         // String representation of conditions
+int stringCount = 0;              // Counter for unique string literals
 %}
 
+/* Union type for tokens and AST nodes */
 %union {
-	int number;
-	float floatValue;
-	char character;
-	char* string;
-	struct AST* ast;
+    int number;                   // Integer value
+    float floatValue;             // Float value
+    char character;               // Character value
+    char* string;                 // String value
+    struct AST* ast;              // AST node
 }
 
+/* Token declarations with their associated types */
 %token <string> ID
 %token <number> INTEGER
 %token <floatValue> DECIMAL
@@ -71,320 +76,289 @@ int stringCount = 0;
 %token <string> RETURN
 %token <string> WRITELN
 %token <string> CHARACTER
+
+/* Operator precedence and associativity */
 %left PLUS 
 %left MINUS
 %left MULTIPLY
 %left DIVIDE
 
-%printer { fprintf(yyoutput, "%s", $$); } ID;
-%printer { fprintf(yyoutput, "%d", $$); } INTEGER;
+/* Custom printing rules for specific types */
+%printer { fprintf(yyoutput, "%s", $$); } ID
+%printer { fprintf(yyoutput, "%d", $$); } INTEGER
 
+/* Non-terminal type declarations */
 %type <ast> Program DeclList Decl VarDeclList FunDeclList VarDecl FunDecl FunCall ParamDecList Block ParamDecListTail ParamDecl Type Stmt StmtList IfStmt WhileLoop Condition Else ArrayExpr Expr MathExpr Trm Factor ParamList Primary UnaryOp BinOp 
 
+/* Entry point of the parser */
 %start Program
 
 %%
-
 Program: 
-	DeclList {
-		$$ = $1;
-	}
+    DeclList {
+        $$ = $1;
+    }
 ;
 
-DeclList:	
-	Decl DeclList { 
-		$1->right = $2;
-		$$ = $1;
-	} 
-	| Decl {
-		$$ = $1;
-	}
-	
-	| FunDeclList
+/* A list of declarations: can be a variable, statement, or a function declaration */
+DeclList: 
+    Decl DeclList { 
+        $1->right = $2; // Link the current declaration to the list
+        $$ = $1;        // Return the updated list
+    } 
+    | Decl {
+        $$ = $1;        // A single declaration
+    }
+    | FunDeclList {      // Function declarations are also part of declarations
+        $$ = $1;
+    }
 ;
 
-Decl: 		
-	VarDecl {}
-
-	| StmtList {
-	}
+/* Declaration can be a variable declaration or a list of statements */
+Decl: 
+    VarDecl {}
+    | StmtList {}
 ;
 
-VarDeclList: {} 
-
-	|	VarDecl VarDeclList	{
-		$1->right = $2;
-		$$ = $1;
-	}
-
-	| VarDecl 
+/* A list of variable declarations */
+VarDeclList: 
+    {}
+    | VarDecl VarDeclList {
+        $1->right = $2; // Link the current variable declaration to the list
+        $$ = $1;        // Return the updated list
+    }
+    | VarDecl {
+        $$ = $1;        // A single variable declaration
+    }
 ;
 
+/* Variable declaration: Handles both simple and array declarations */
 VarDecl: 
-	Type ID SEMICOLON {
+    Type ID SEMICOLON {
+        printf("\nRECOGNIZED RULE: VARIABLE declaration %s\n", $2);
 
-		printf("\nRECOGNIZED RULE: VARIABLE declaration %s\n", $2);
+        // Check for duplicate variable declaration
+        int inSymTab = found($2, currentScope);
+        if (inSymTab == 0) {
+            addItem($2, "VAR", $1->nodeType, currentScope);
+        } else {
+            printf("SEMANTIC ERROR: Var %s is already in the symbol table\n", $2);
+            semanticCheckPassed = 0;
+        }
 
+        // Generate AST node if semantic checks pass
+        if (semanticCheckPassed) {
+            $$ = AST_Type("TYPE", $1->nodeType, $2);
+        }
+        semanticCheckPassed = 1; // Reset the flag
+    }
+    | Type ID LBRACKET INTEGER RBRACKET SEMICOLON {
+        printf("\nRECOGNIZED RULE: ARRAY declaration %s\n\n", $2);
 
-		int inSymTab = found($2, currentScope);
-		
+        // Check for duplicate array declaration
+        int inSymTab = found($2, currentScope);
+        if (inSymTab == 0) {
+            char arrIndex[12];
+            for (int i = 0; i < $4; i++) {
+                sprintf(arrIndex, "%s[%d]", $2, i);
+                addItem(arrIndex, "ARRAY", $1->nodeType, currentScope);
+            }
+        } else {
+            printf("SEMANTIC ERROR: Var %s is already in the symbol table\n", $2);
+        }
 
-		if (inSymTab == 0)  {
-			addItem($2, "VAR", $1->nodeType, currentScope);
-			//showSymTable();
-		}
-		else {
-			printf("SEMANTIC ERROR: Var %s is already in the symbol table\n", $2);
-			semanticCheckPassed = 0;
-		}
+        // Create AST node and emit MIPS code for the array
+        char intVal[50]; 
+        sprintf(intVal, "%d", $4);
+        $$ = AST_assignment("ARR", intVal, $2);
+        emitMIPSArrayDecl($2, $4);
 
-
-		if (semanticCheckPassed) {
-
-			$$ = AST_Type("TYPE", $1->nodeType, $2);
-
-		}
-
-		semanticCheckPassed = 1;
-	}
-	
-
-	| Type ID LBRACKET INTEGER RBRACKET SEMICOLON {
-		
-		printf("\nRECOGNIZED RULE: ARRAY declaration %s\n\n", $2);
-
-
-		int inSymTab = found($2, currentScope);
-
-		if (inSymTab == 0) {
-			char arrIndex[12];
-			for (int i = 0; i < $4; i++) {
-				sprintf(arrIndex, "%s[%d]", $2, i);
-				addItem(arrIndex, "ARRAY", $1->nodeType, currentScope);				
-			}
-
-			//showSymTable();
-		} else {
-			printf("SEMANTIC ERROR: Var %s is already in the symbol table\n", $2);
-		}
-
-		char intVal[50]; 
-		sprintf(intVal, "%d", $4);
-		$$ = AST_assignment("ARR", intVal, $2);
-
-		emitMIPSArrayDecl($2, $4);
-
-		semanticCheckPassed = 1;
-	} 
+        semanticCheckPassed = 1; // Reset the flag
+    }
 ;
 
+/* List of function declarations */
 FunDeclList: 
-	FunDecl 
-
-	| FunDecl FunDeclList {
-		
-
-	}
+    FunDecl {
+        $$ = $1;
+    }
+    | FunDecl FunDeclList {
+        $1->right = $2; // Link the current function to the list
+        $$ = $1;
+    }
 ;
 
+/* Function declaration with parameters and a body */
 FunDecl:
-	FUNC Type ID LPAREN {
+    FUNC Type ID LPAREN {
+        inFunction = 1; // Enter function scope
 
-		inFunction = 1;
+        printf("\nRECOGNIZED RULE: Function Declaration \"%s\"\n\n", $3);
+        printf("ID = %s\n", $3);
+        strcpy(currentScope, $3); // Change scope to function name
+        printf("\n------------------- Scope Change --> %s -------------------\n", currentScope);
 
-		printf("\nRECOGNIZED RULE: Function Declaration \"%s\"\n\n" , $3);
-		printf("ID = %s\n", $3);
-		strcpy(currentScope, $3);
-		printf("\n------------------- Scope Change --> ");
-		printf("%s", currentScope);
-		printf(" -------------------\n");
+        // Check for duplicate function declaration
+        int inSymTab = found($3, currentScope);
+        if (inSymTab == 0) {
+            addItem($3, "FUNC", $2->nodeType, currentScope);
+        } else {
+            printf("SEMANTIC ERROR: Function %s is already in the symbol table\n", $2->nodeType);
+            semanticCheckPassed = 0;
+        }
 
-		int inSymTab = found($3, currentScope);
+        // Emit MIPS code for the function start
+        if (semanticCheckPassed) {
+            emitMIPSFunc($3);
+        }
+        semanticCheckPassed = 1; // Reset the flag
+    } 
+    ParamDecList RPAREN Block {
+        // Generate AST for the function and handle its body
+        if (semanticCheckPassed) {
+            $$ = AST_assignment("FUNC", $2->nodeType, $3);
+        }
 
- 		if (inSymTab == 0) {
-			
-			addItem($3, "FUNC", $2->nodeType, currentScope);
+        // Emit MIPS code to end the function
+        endOfMIPSFunction($3);
 
-		} 
-		else {
-			printf("SEMANTIC ERROR: Function %s is already in the symbol table\n", $2->nodeType);
-			semanticCheckPassed = 0;
-		}
-
-		if (semanticCheckPassed) {
-			emitMIPSFunc($3);
-		}
-
-		semanticCheckPassed = 1;
-	} 
-
-	ParamDecList RPAREN Block {
-
-
-		if (semanticCheckPassed) {
-			$$ = AST_assignment("FUNC", $2->nodeType, $3);		
-
-		}
-
-		endOfMIPSFunction($3);
-		semanticCheckPassed = 1;
-		inFunction = 0;
-		maxParam = 0;
-		paramCount = 0;
-
-	}
+        // Reset function-specific flags and counters
+        semanticCheckPassed = 1;
+        inFunction = 0;
+        maxParam = 0;
+        paramCount = 0;
+    }
 ;
 
-ParamDecList:  {printf("No ParamDeclList (EPSILON)\n\n");}
-
-	| ParamDecListTail {
-		printf("Parameters Detected--->\n");
-		$$ = $1;
-	}
-
+/* Parameter declaration list: can be empty or contain a list of parameters */
+ParamDecList: 
+    {
+        printf("No ParamDeclList (EPSILON)\n\n");
+    }
+    | ParamDecListTail {
+        printf("Parameters Detected--->\n");
+        $$ = $1; // Pass the parameter list
+    }
 ;
 
+/* Tail of the parameter declaration list */
 ParamDecListTail: 
-	ParamDecl {	
-
-		if (maxParam < 4) {
-			maxParam++;
-		} else {
-			printf("Too many parameters in FunDecl");
-		}
-	}
-
-	| ParamDecl ParamDecListTail {
-		$1->right = $2; 
-		$$ = $1;
-	}
-
+    ParamDecl {
+        if (maxParam < 4) { // Check parameter limit
+            maxParam++;
+        } else {
+            printf("Too many parameters in FunDecl\n");
+        }
+    }
+    | ParamDecl ParamDecListTail {
+        $1->right = $2; // Link the current parameter to the list
+        $$ = $1;
+    }
 ;
 
+/* Parameter declaration: type and identifier */
 ParamDecl: 
-	Type ID {
+    Type ID {
+        printf("\nRECOGNIZED RULE: Parameter VARIABLE declaration %s\n\n", $2);
 
-		printf("\nRECOGNIZED RULE: Parameter VARIABLE declaration %s\n\n", $2);
+        // Check for duplicate parameter
+        int inSymTab = found($2, currentScope);
+        if (inSymTab == 0) {
+            addItem($2, "PARAM", $1->nodeType, currentScope);
+        } else {
+            printf("\nSEMANTIC ERROR: Var %s is already in the symbol table\n", $2);
+        }
 
-		int inSymTab = found($2, currentScope);
-
-		if (inSymTab == 0) {
-			addItem($2, "PARAM", $1->nodeType, currentScope);
-		} 
-		else {
-			printf("\nSEMANTIC ERROR: Var %s is already in the symbol table\n", $2);
-		} 
-
-		emitMIPSParameters($2, paramCount);
-		paramCount++;
-
-	}
-
+        emitMIPSParameters($2, paramCount); // Emit MIPS code for the parameter
+        paramCount++;
+    }
 ;
 
+/* Block: enclosed by curly braces */
 Block: 
-	LBRACE DeclList RBRACE {
-		$$ = $2;
-	}
+    LBRACE DeclList RBRACE {
+        $$ = $2; // Pass the declarations inside the block
+    }
 ;
 
-Type: INT {}
-	| FLOAT {}
-	| CHAR {}
+/* Type specifiers */
+Type: 
+    INT {}
+    | FLOAT {}
+    | CHAR {}
+;
 
+/* Statement list: a sequence of statements */
 StmtList: 
-	Stmt 
-
-	| Stmt StmtList {
-		$1->right = $2;
-		$$ = $1;
-	}
+    Stmt {
+        $$ = $1; // Single statement
+    }
+    | Stmt StmtList {
+        $1->right = $2; // Link the current statement to the list
+        $$ = $1;
+    }
 ;
 
+/* Statement definitions */
 Stmt: 
-	SEMICOLON {
-		printf("\nRECOGNIZED RULE: SEMICOLON %s\n", $1);	
-	} 
+    SEMICOLON {
+        printf("\nRECOGNIZED RULE: SEMICOLON %s\n", $1);
+    }
+    | WhileLoop {}
+    | IfStmt {}
+    | Expr SEMICOLON {
+        hasMath = 0; // Reset math flag after expression
+        $$ = $1;
+    }
+    | RETURN Expr SEMICOLON {
+        printf("RETURN Statement Recognized!\n");
 
-	| WhileLoop {}
+        $$ = AST_assignment("RETURN", "", $2->RHS);
 
-	| IfStmt {}
+        char* returnType = $2->nodeType;
+        char val[25];
 
-	| Expr SEMICOLON {
-		hasMath = 0;
-		$$ = $1;
-	}
+        if (!strcmp(returnType, "id")) {
+            strcpy(val, getValue($2->RHS, currentScope));
+        } else {
+            strcpy(val, $2->RHS);
+        }
 
-	| RETURN Expr SEMICOLON {		
+        setItemValue(currentScope, val, currentScope);
 
-		printf("RETURN Statement Recognized!\n");
+        if (strcmp(currentScope, "main")) {
+            emitMIPSReturn($2->RHS, returnType); // Emit MIPS return statement
+        }
 
-		$$ = AST_assignment("RETURN", "", $2->RHS);
+        hasMath = 0; // Reset math flag
+    }
+    | WRITE Expr SEMICOLON {
+        printf("\nRECOGNIZED RULE: Write Statement\n");
 
-		char *returnType = $2->nodeType;
-	
-		char val[25];
-		if (!strcmp(returnType, "id")) {
-			strcpy(val, getValue($2->RHS, currentScope));
-		} else {
-			strcpy(val, $2->RHS);
-		}
-		setItemValue(currentScope, val, currentScope);
+        $$ = AST_Write("WRITE", "", $2->RHS);
 
-		if (strcmp(currentScope, "main")) {
-			emitMIPSReturn($2->RHS, returnType);
-		}
+        emitIRWriteId($2->RHS, getVariableType($2->RHS, currentScope));
 
-		hasMath = 0;
+        if (!strcmp($2->nodeType, "id")) {
+            emitMIPSWriteId($2->RHS, getVariableType($2->RHS, currentScope));
+        } else if (!strcmp($2->nodeType, "int")) {
+            emitMIPSWriteInt(atoi($2->RHS));
+        } else if (!strcmp($2->nodeType, "char")) {
+            emitMIPSWriteId($2->RHS, getVariableType($2->RHS, currentScope));
+        }
+    }
+    | WRITELN SEMICOLON {
+        printf("\nRECOGNIZED RULE: Write Line %s\n", $1);
 
-	}
+        $$ = AST_assignment("WRITELN", "", "");
+        emitMIPSNewLine(); // Emit newline in MIPS
+    }
+    | SWRITE STRING SEMICOLON {
+        printf("\nRECOGNIZED RULE: Write String %s\n", $2);
 
-
-	| WRITE Expr SEMICOLON {
-		printf("\nRECOGNIZED RULE: Write Statement\n");
-
-
-		$$ = AST_Write("WRITE", "", $2->RHS);
-		emitIRWriteId($2->RHS, getVariableType($2->RHS, currentScope));
-		
-		if (!strcmp($2->nodeType,"id")) {
-
-			emitMIPSWriteId($2->RHS, getVariableType($2->RHS, currentScope));
-
-		}
-
-		else if (!strcmp($2->nodeType, "int")) {
-
-			emitMIPSWriteInt(atoi($2->RHS));
-
-		}
-		else if (!strcmp($2->nodeType, "char")) {
-
-			emitMIPSWriteId($2->RHS, getVariableType($2->RHS, currentScope));
-		}
-		
-	}
-
-
-	| WRITELN SEMICOLON {
-
-		printf("\nRECOGNIZED RULE: Write Line %s\n", $1);
-
-	 	$$ = AST_assignment("WRITELN", "", "");
-
-		emitMIPSNewLine();
-	}
-
-	| SWRITE STRING SEMICOLON {
-
-		printf("\nRECOGNIZED RULE: Write String %s\n", $2);
-
-		emitMIPSString($2, stringCount);
-
-		stringCount++;
-
-	}
-
+        emitMIPSString($2, stringCount); // Emit string in MIPS
+        stringCount++; // Increment string count
+    }
 ;
 
 IfStmt:	
@@ -527,6 +501,9 @@ Condition:
 	}
 
 ;
+
+
+
 
 ArrayExpr:
 
@@ -697,6 +674,7 @@ FunCall:
 	}
 
 ;
+
 
 Primary: 
 	ID {
@@ -944,35 +922,44 @@ void yyerror(const char* s) {
 	exit(1);
 }
 
-int main(int argc, char**argv)
-{
+// Main function to initiate the compilation process
+int main(int argc, char** argv) {
+    printf("\n\nStart of Compiler\n\n");
 
+    // Initialize Intermediate Representation (IR) and Assembly files
+    initIRcodeFile();
+    initAssemblyFile();
 
-	printf("\n\nStart of Compiler\n\n");
-	initIRcodeFile();
-	initAssemblyFile();
-	
-	if (argc > 1){
-	  if(!(yyin = fopen(argv[1], "r")))
-          {
-		perror(argv[1]);
-		return(1);
-	  }
-	}
-	yyparse();
+    // Check for input file and open it for parsing
+    if (argc > 1) {
+        if (!(yyin = fopen(argv[1], "r"))) {
+            perror(argv[1]); // Print error if file cannot be opened
+            return 1;
+        }
+    }
 
-	emitEndOfAssemblyCode();
+    // Start parsing
+    yyparse();
 
-	// Print Symbol Table
-	printf("\n\nSymbol Table\n\n");
-	showSymTable();
+    // Emit the end of the assembly code
+    emitEndOfAssemblyCode();
 
-	printf("\nTAC Made\n");
+    // Display the Symbol Table
+    printf("\n\nSymbol Table\n\n");
+    showSymTable();
 
-	emitEndOfAssemblyCodeIR();
-	printf("\nMIPS Made\n");
+    // Emit the end of the IR code
+    printf("\nTAC Made\n");
+    emitEndOfAssemblyCodeIR();
 
-	appendFiles();
+    // Signal that the MIPS code has been generated
+    printf("\nMIPS Made\n");
 
-	printf("\nEnd of Compiler\n");
+    // Append files to generate the final assembly output
+    appendFiles();
+
+    // Indicate the end of the compilation process
+    printf("\nEnd of Compiler\n");
+
+    return 0; // Exit the program
 }
