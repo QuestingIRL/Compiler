@@ -1,0 +1,5 @@
+DATA:
+x:   WORD  15
+result:   WORD  0
+result1:   WORD  0
+x:   WORD  14
