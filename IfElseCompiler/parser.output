@@ -1,0 +1,1380 @@
+Nonterminals useless in grammar
+
+    VarDeclList
+    BinOp
+
+
+Terminals unused in grammar
+
+    TIMES
+
+
+Rules useless in grammar
+
+   62 VarDeclList: ε
+   63            | VarDecl VarDeclList
+   64            | VarDecl
+
+   65 BinOp: PLUS
+   66      | MINUS
+   67      | MULTIPLY
+   68      | DIVIDE
+
+
+State 1 conflicts: 1 reduce/reduce
+State 2 conflicts: 1 reduce/reduce
+State 25 conflicts: 12 shift/reduce
+State 58 conflicts: 1 reduce/reduce
+
+
+Grammar
+
+    0 $accept: Program $end
+
+    1 Program: DeclList
+
+    2 DeclList: Decl DeclList
+    3         | Decl
+    4         | FunDeclList
+
+    5 Decl: VarDecl
+    6     | StmtList
+
+    7 VarDecl: Type ID SEMICOLON
+    8        | Type ID LBRACKET INTEGER RBRACKET SEMICOLON
+
+    9 FunDeclList: FunDecl
+   10            | FunDecl FunDeclList
+
+   11 $@1: ε
+
+   12 FunDecl: FUNC Type ID LPAREN $@1 ParamDecList RPAREN Block
+
+   13 ParamDecList: ε
+   14             | ParamDecListTail
+
+   15 ParamDecListTail: ParamDecl
+   16                 | ParamDecl ParamDecListTail
+
+   17 ParamDecl: Type ID
+
+   18 Block: LBRACE DeclList RBRACE
+
+   19 Type: INT
+   20     | FLOAT
+   21     | CHAR
+
+   22 StmtList: Stmt
+   23         | Stmt StmtList
+
+   24 Stmt: SEMICOLON
+   25     | IfStmt
+   26     | Expr SEMICOLON
+   27     | RETURN Expr SEMICOLON
+   28     | WRITE Expr SEMICOLON
+   29     | WRITELN SEMICOLON
+   30     | SWRITE STRING SEMICOLON
+
+   31 $@2: ε
+
+   32 IfStmt: IF LPAREN Condition RPAREN Block $@2 Else
+
+   33 Else: ε
+   34     | ELSE Block
+
+   35 Condition: Primary LOGIC Primary
+
+   36 ArrayExpr: ID LBRACKET INTEGER RBRACKET EQ Primary
+   37          | ID EQ ID LBRACKET INTEGER RBRACKET
+
+   38 Expr: Primary
+   39     | MathExpr
+   40     | ArrayExpr
+   41     | FunCall
+   42     | UnaryOp Expr
+   43     | ID EQ Expr
+
+   44 FunCall: ID LPAREN ParamList RPAREN
+
+   45 Primary: ID
+   46        | DECIMAL
+   47        | INTEGER
+   48        | CHARACTER
+
+   49 MathExpr: Trm
+   50         | MathExpr MINUS Trm
+   51         | MathExpr PLUS Trm
+
+   52 Trm: Factor
+   53    | Trm MULTIPLY Factor
+   54    | Trm DIVIDE Factor
+
+   55 Factor: ID
+   56       | INTEGER
+   57       | LPAREN MathExpr RPAREN
+
+   58 ParamList: ε
+
+   59 $@3: ε
+
+   60 ParamList: Primary $@3 ParamList
+
+   61 UnaryOp: MINUS
+
+
+Terminals, with rules where they appear
+
+    $end (0) 0
+    error (256)
+    ID <string> (258) 7 8 12 17 36 37 43 44 45 55
+    INTEGER <number> (259) 8 36 37 47 56
+    DECIMAL <floatValue> (260) 46
+    STRING <string> (261) 30
+    SEMICOLON <string> (262) 7 8 24 26 27 28 29 30
+    EQ <string> (263) 36 37 43
+    WRITE <string> (264) 28
+    SWRITE <string> (265) 30
+    FUNC <string> (266) 12
+    IF <string> (267) 32
+    ELSE <string> (268) 34
+    PLUS <string> (269) 51
+    MINUS <string> (270) 50 61
+    TIMES <string> (271)
+    DIVIDE <string> (272) 54
+    LOGIC <string> (273) 35
+    LBRACKET <string> (274) 8 36 37
+    RBRACKET <string> (275) 8 36 37
+    LPAREN <string> (276) 12 32 44 57
+    RPAREN <string> (277) 12 32 44 57
+    LBRACE <string> (278) 18
+    RBRACE <string> (279) 18
+    INT <string> (280) 19
+    CHAR <string> (281) 21
+    FLOAT <string> (282) 20
+    RETURN <string> (283) 27
+    WRITELN <string> (284) 29
+    CHARACTER <string> (285) 48
+    MULTIPLY (286) 53
+
+
+Nonterminals, with rules where they appear
+
+    $accept (32)
+        on left: 0
+    Program <ast> (33)
+        on left: 1
+        on right: 0
+    DeclList <ast> (34)
+        on left: 2 3 4
+        on right: 1 2 18
+    Decl <ast> (35)
+        on left: 5 6
+        on right: 2 3
+    VarDecl <ast> (36)
+        on left: 7 8
+        on right: 5
+    FunDeclList <ast> (37)
+        on left: 9 10
+        on right: 4 10
+    FunDecl <ast> (38)
+        on left: 12
+        on right: 9 10
+    $@1 (39)
+        on left: 11
+        on right: 12
+    ParamDecList <ast> (40)
+        on left: 13 14
+        on right: 12
+    ParamDecListTail <ast> (41)
+        on left: 15 16
+        on right: 14 16
+    ParamDecl <ast> (42)
+        on left: 17
+        on right: 15 16
+    Block <ast> (43)
+        on left: 18
+        on right: 12 32 34
+    Type <ast> (44)
+        on left: 19 20 21
+        on right: 7 8 12 17
+    StmtList <ast> (45)
+        on left: 22 23
+        on right: 6 23
+    Stmt <ast> (46)
+        on left: 24 25 26 27 28 29 30
+        on right: 22 23
+    IfStmt <ast> (47)
+        on left: 32
+        on right: 25
+    $@2 (48)
+        on left: 31
+        on right: 32
+    Else <ast> (49)
+        on left: 33 34
+        on right: 32
+    Condition <ast> (50)
+        on left: 35
+        on right: 32
+    ArrayExpr <ast> (51)
+        on left: 36 37
+        on right: 40
+    Expr <ast> (52)
+        on left: 38 39 40 41 42 43
+        on right: 26 27 28 42 43
+    FunCall <ast> (53)
+        on left: 44
+        on right: 41
+    Primary <ast> (54)
+        on left: 45 46 47 48
+        on right: 35 36 38 60
+    MathExpr <ast> (55)
+        on left: 49 50 51
+        on right: 39 50 51 57
+    Trm <ast> (56)
+        on left: 52 53 54
+        on right: 49 50 51 53 54
+    Factor <ast> (57)
+        on left: 55 56 57
+        on right: 52 53 54
+    ParamList <ast> (58)
+        on left: 58 60
+        on right: 44 60
+    $@3 (59)
+        on left: 59
+        on right: 60
+    UnaryOp <ast> (60)
+        on left: 61
+        on right: 42
+
+
+State 0
+
+    0 $accept: • Program $end
+
+    ID         shift, and go to state 1
+    INTEGER    shift, and go to state 2
+    DECIMAL    shift, and go to state 3
+    SEMICOLON  shift, and go to state 4
+    WRITE      shift, and go to state 5
+    SWRITE     shift, and go to state 6
+    FUNC       shift, and go to state 7
+    IF         shift, and go to state 8
+    MINUS      shift, and go to state 9
+    LPAREN     shift, and go to state 10
+    INT        shift, and go to state 11
+    CHAR       shift, and go to state 12
+    FLOAT      shift, and go to state 13
+    RETURN     shift, and go to state 14
+    WRITELN    shift, and go to state 15
+    CHARACTER  shift, and go to state 16
+
+    Program      go to state 17
+    DeclList     go to state 18
+    Decl         go to state 19
+    VarDecl      go to state 20
+    FunDeclList  go to state 21
+    FunDecl      go to state 22
+    Type         go to state 23
+    StmtList     go to state 24
+    Stmt         go to state 25
+    IfStmt       go to state 26
+    ArrayExpr    go to state 27
+    Expr         go to state 28
+    FunCall      go to state 29
+    Primary      go to state 30
+    MathExpr     go to state 31
+    Trm          go to state 32
+    Factor       go to state 33
+    UnaryOp      go to state 34
+
+
+State 1
+
+   36 ArrayExpr: ID • LBRACKET INTEGER RBRACKET EQ Primary
+   37          | ID • EQ ID LBRACKET INTEGER RBRACKET
+   43 Expr: ID • EQ Expr
+   44 FunCall: ID • LPAREN ParamList RPAREN
+   45 Primary: ID •
+   55 Factor: ID •
+
+    EQ        shift, and go to state 35
+    LBRACKET  shift, and go to state 36
+    LPAREN    shift, and go to state 37
+
+    SEMICOLON  reduce using rule 45 (Primary)
+    SEMICOLON  [reduce using rule 55 (Factor)]
+    $default   reduce using rule 55 (Factor)
+
+
+State 2
+
+   47 Primary: INTEGER •
+   56 Factor: INTEGER •
+
+    SEMICOLON  reduce using rule 47 (Primary)
+    SEMICOLON  [reduce using rule 56 (Factor)]
+    $default   reduce using rule 56 (Factor)
+
+
+State 3
+
+   46 Primary: DECIMAL •
+
+    $default  reduce using rule 46 (Primary)
+
+
+State 4
+
+   24 Stmt: SEMICOLON •
+
+    $default  reduce using rule 24 (Stmt)
+
+
+State 5
+
+   28 Stmt: WRITE • Expr SEMICOLON
+
+    ID         shift, and go to state 1
+    INTEGER    shift, and go to state 2
+    DECIMAL    shift, and go to state 3
+    MINUS      shift, and go to state 9
+    LPAREN     shift, and go to state 10
+    CHARACTER  shift, and go to state 16
+
+    ArrayExpr  go to state 27
+    Expr       go to state 38
+    FunCall    go to state 29
+    Primary    go to state 30
+    MathExpr   go to state 31
+    Trm        go to state 32
+    Factor     go to state 33
+    UnaryOp    go to state 34
+
+
+State 6
+
+   30 Stmt: SWRITE • STRING SEMICOLON
+
+    STRING  shift, and go to state 39
+
+
+State 7
+
+   12 FunDecl: FUNC • Type ID LPAREN $@1 ParamDecList RPAREN Block
+
+    INT    shift, and go to state 11
+    CHAR   shift, and go to state 12
+    FLOAT  shift, and go to state 13
+
+    Type  go to state 40
+
+
+State 8
+
+   32 IfStmt: IF • LPAREN Condition RPAREN Block $@2 Else
+
+    LPAREN  shift, and go to state 41
+
+
+State 9
+
+   61 UnaryOp: MINUS •
+
+    $default  reduce using rule 61 (UnaryOp)
+
+
+State 10
+
+   57 Factor: LPAREN • MathExpr RPAREN
+
+    ID       shift, and go to state 42
+    INTEGER  shift, and go to state 43
+    LPAREN   shift, and go to state 10
+
+    MathExpr  go to state 44
+    Trm       go to state 32
+    Factor    go to state 33
+
+
+State 11
+
+   19 Type: INT •
+
+    $default  reduce using rule 19 (Type)
+
+
+State 12
+
+   21 Type: CHAR •
+
+    $default  reduce using rule 21 (Type)
+
+
+State 13
+
+   20 Type: FLOAT •
+
+    $default  reduce using rule 20 (Type)
+
+
+State 14
+
+   27 Stmt: RETURN • Expr SEMICOLON
+
+    ID         shift, and go to state 1
+    INTEGER    shift, and go to state 2
+    DECIMAL    shift, and go to state 3
+    MINUS      shift, and go to state 9
+    LPAREN     shift, and go to state 10
+    CHARACTER  shift, and go to state 16
+
+    ArrayExpr  go to state 27
+    Expr       go to state 45
+    FunCall    go to state 29
+    Primary    go to state 30
+    MathExpr   go to state 31
+    Trm        go to state 32
+    Factor     go to state 33
+    UnaryOp    go to state 34
+
+
+State 15
+
+   29 Stmt: WRITELN • SEMICOLON
+
+    SEMICOLON  shift, and go to state 46
+
+
+State 16
+
+   48 Primary: CHARACTER •
+
+    $default  reduce using rule 48 (Primary)
+
+
+State 17
+
+    0 $accept: Program • $end
+
+    $end  shift, and go to state 47
+
+
+State 18
+
+    1 Program: DeclList •
+
+    $default  reduce using rule 1 (Program)
+
+
+State 19
+
+    2 DeclList: Decl • DeclList
+    3         | Decl •
+
+    ID         shift, and go to state 1
+    INTEGER    shift, and go to state 2
+    DECIMAL    shift, and go to state 3
+    SEMICOLON  shift, and go to state 4
+    WRITE      shift, and go to state 5
+    SWRITE     shift, and go to state 6
+    FUNC       shift, and go to state 7
+    IF         shift, and go to state 8
+    MINUS      shift, and go to state 9
+    LPAREN     shift, and go to state 10
+    INT        shift, and go to state 11
+    CHAR       shift, and go to state 12
+    FLOAT      shift, and go to state 13
+    RETURN     shift, and go to state 14
+    WRITELN    shift, and go to state 15
+    CHARACTER  shift, and go to state 16
+
+    $default  reduce using rule 3 (DeclList)
+
+    DeclList     go to state 48
+    Decl         go to state 19
+    VarDecl      go to state 20
+    FunDeclList  go to state 21
+    FunDecl      go to state 22
+    Type         go to state 23
+    StmtList     go to state 24
+    Stmt         go to state 25
+    IfStmt       go to state 26
+    ArrayExpr    go to state 27
+    Expr         go to state 28
+    FunCall      go to state 29
+    Primary      go to state 30
+    MathExpr     go to state 31
+    Trm          go to state 32
+    Factor       go to state 33
+    UnaryOp      go to state 34
+
+
+State 20
+
+    5 Decl: VarDecl •
+
+    $default  reduce using rule 5 (Decl)
+
+
+State 21
+
+    4 DeclList: FunDeclList •
+
+    $default  reduce using rule 4 (DeclList)
+
+
+State 22
+
+    9 FunDeclList: FunDecl •
+   10            | FunDecl • FunDeclList
+
+    FUNC  shift, and go to state 7
+
+    $default  reduce using rule 9 (FunDeclList)
+
+    FunDeclList  go to state 49
+    FunDecl      go to state 22
+
+
+State 23
+
+    7 VarDecl: Type • ID SEMICOLON
+    8        | Type • ID LBRACKET INTEGER RBRACKET SEMICOLON
+
+    ID  shift, and go to state 50
+
+
+State 24
+
+    6 Decl: StmtList •
+
+    $default  reduce using rule 6 (Decl)
+
+
+State 25
+
+   22 StmtList: Stmt •
+   23         | Stmt • StmtList
+
+    ID         shift, and go to state 1
+    INTEGER    shift, and go to state 2
+    DECIMAL    shift, and go to state 3
+    SEMICOLON  shift, and go to state 4
+    WRITE      shift, and go to state 5
+    SWRITE     shift, and go to state 6
+    IF         shift, and go to state 8
+    MINUS      shift, and go to state 9
+    LPAREN     shift, and go to state 10
+    RETURN     shift, and go to state 14
+    WRITELN    shift, and go to state 15
+    CHARACTER  shift, and go to state 16
+
+    ID         [reduce using rule 22 (StmtList)]
+    INTEGER    [reduce using rule 22 (StmtList)]
+    DECIMAL    [reduce using rule 22 (StmtList)]
+    SEMICOLON  [reduce using rule 22 (StmtList)]
+    WRITE      [reduce using rule 22 (StmtList)]
+    SWRITE     [reduce using rule 22 (StmtList)]
+    IF         [reduce using rule 22 (StmtList)]
+    MINUS      [reduce using rule 22 (StmtList)]
+    LPAREN     [reduce using rule 22 (StmtList)]
+    RETURN     [reduce using rule 22 (StmtList)]
+    WRITELN    [reduce using rule 22 (StmtList)]
+    CHARACTER  [reduce using rule 22 (StmtList)]
+    $default   reduce using rule 22 (StmtList)
+
+    StmtList   go to state 51
+    Stmt       go to state 25
+    IfStmt     go to state 26
+    ArrayExpr  go to state 27
+    Expr       go to state 28
+    FunCall    go to state 29
+    Primary    go to state 30
+    MathExpr   go to state 31
+    Trm        go to state 32
+    Factor     go to state 33
+    UnaryOp    go to state 34
+
+
+State 26
+
+   25 Stmt: IfStmt •
+
+    $default  reduce using rule 25 (Stmt)
+
+
+State 27
+
+   40 Expr: ArrayExpr •
+
+    $default  reduce using rule 40 (Expr)
+
+
+State 28
+
+   26 Stmt: Expr • SEMICOLON
+
+    SEMICOLON  shift, and go to state 52
+
+
+State 29
+
+   41 Expr: FunCall •
+
+    $default  reduce using rule 41 (Expr)
+
+
+State 30
+
+   38 Expr: Primary •
+
+    $default  reduce using rule 38 (Expr)
+
+
+State 31
+
+   39 Expr: MathExpr •
+   50 MathExpr: MathExpr • MINUS Trm
+   51         | MathExpr • PLUS Trm
+
+    PLUS   shift, and go to state 53
+    MINUS  shift, and go to state 54
+
+    $default  reduce using rule 39 (Expr)
+
+
+State 32
+
+   49 MathExpr: Trm •
+   53 Trm: Trm • MULTIPLY Factor
+   54    | Trm • DIVIDE Factor
+
+    DIVIDE    shift, and go to state 55
+    MULTIPLY  shift, and go to state 56
+
+    $default  reduce using rule 49 (MathExpr)
+
+
+State 33
+
+   52 Trm: Factor •
+
+    $default  reduce using rule 52 (Trm)
+
+
+State 34
+
+   42 Expr: UnaryOp • Expr
+
+    ID         shift, and go to state 1
+    INTEGER    shift, and go to state 2
+    DECIMAL    shift, and go to state 3
+    MINUS      shift, and go to state 9
+    LPAREN     shift, and go to state 10
+    CHARACTER  shift, and go to state 16
+
+    ArrayExpr  go to state 27
+    Expr       go to state 57
+    FunCall    go to state 29
+    Primary    go to state 30
+    MathExpr   go to state 31
+    Trm        go to state 32
+    Factor     go to state 33
+    UnaryOp    go to state 34
+
+
+State 35
+
+   37 ArrayExpr: ID EQ • ID LBRACKET INTEGER RBRACKET
+   43 Expr: ID EQ • Expr
+
+    ID         shift, and go to state 58
+    INTEGER    shift, and go to state 2
+    DECIMAL    shift, and go to state 3
+    MINUS      shift, and go to state 9
+    LPAREN     shift, and go to state 10
+    CHARACTER  shift, and go to state 16
+
+    ArrayExpr  go to state 27
+    Expr       go to state 59
+    FunCall    go to state 29
+    Primary    go to state 30
+    MathExpr   go to state 31
+    Trm        go to state 32
+    Factor     go to state 33
+    UnaryOp    go to state 34
+
+
+State 36
+
+   36 ArrayExpr: ID LBRACKET • INTEGER RBRACKET EQ Primary
+
+    INTEGER  shift, and go to state 60
+
+
+State 37
+
+   44 FunCall: ID LPAREN • ParamList RPAREN
+
+    ID         shift, and go to state 61
+    INTEGER    shift, and go to state 62
+    DECIMAL    shift, and go to state 3
+    CHARACTER  shift, and go to state 16
+
+    $default  reduce using rule 58 (ParamList)
+
+    Primary    go to state 63
+    ParamList  go to state 64
+
+
+State 38
+
+   28 Stmt: WRITE Expr • SEMICOLON
+
+    SEMICOLON  shift, and go to state 65
+
+
+State 39
+
+   30 Stmt: SWRITE STRING • SEMICOLON
+
+    SEMICOLON  shift, and go to state 66
+
+
+State 40
+
+   12 FunDecl: FUNC Type • ID LPAREN $@1 ParamDecList RPAREN Block
+
+    ID  shift, and go to state 67
+
+
+State 41
+
+   32 IfStmt: IF LPAREN • Condition RPAREN Block $@2 Else
+
+    ID         shift, and go to state 61
+    INTEGER    shift, and go to state 62
+    DECIMAL    shift, and go to state 3
+    CHARACTER  shift, and go to state 16
+
+    Condition  go to state 68
+    Primary    go to state 69
+
+
+State 42
+
+   55 Factor: ID •
+
+    $default  reduce using rule 55 (Factor)
+
+
+State 43
+
+   56 Factor: INTEGER •
+
+    $default  reduce using rule 56 (Factor)
+
+
+State 44
+
+   50 MathExpr: MathExpr • MINUS Trm
+   51         | MathExpr • PLUS Trm
+   57 Factor: LPAREN MathExpr • RPAREN
+
+    PLUS    shift, and go to state 53
+    MINUS   shift, and go to state 54
+    RPAREN  shift, and go to state 70
+
+
+State 45
+
+   27 Stmt: RETURN Expr • SEMICOLON
+
+    SEMICOLON  shift, and go to state 71
+
+
+State 46
+
+   29 Stmt: WRITELN SEMICOLON •
+
+    $default  reduce using rule 29 (Stmt)
+
+
+State 47
+
+    0 $accept: Program $end •
+
+    $default  accept
+
+
+State 48
+
+    2 DeclList: Decl DeclList •
+
+    $default  reduce using rule 2 (DeclList)
+
+
+State 49
+
+   10 FunDeclList: FunDecl FunDeclList •
+
+    $default  reduce using rule 10 (FunDeclList)
+
+
+State 50
+
+    7 VarDecl: Type ID • SEMICOLON
+    8        | Type ID • LBRACKET INTEGER RBRACKET SEMICOLON
+
+    SEMICOLON  shift, and go to state 72
+    LBRACKET   shift, and go to state 73
+
+
+State 51
+
+   23 StmtList: Stmt StmtList •
+
+    $default  reduce using rule 23 (StmtList)
+
+
+State 52
+
+   26 Stmt: Expr SEMICOLON •
+
+    $default  reduce using rule 26 (Stmt)
+
+
+State 53
+
+   51 MathExpr: MathExpr PLUS • Trm
+
+    ID       shift, and go to state 42
+    INTEGER  shift, and go to state 43
+    LPAREN   shift, and go to state 10
+
+    Trm     go to state 74
+    Factor  go to state 33
+
+
+State 54
+
+   50 MathExpr: MathExpr MINUS • Trm
+
+    ID       shift, and go to state 42
+    INTEGER  shift, and go to state 43
+    LPAREN   shift, and go to state 10
+
+    Trm     go to state 75
+    Factor  go to state 33
+
+
+State 55
+
+   54 Trm: Trm DIVIDE • Factor
+
+    ID       shift, and go to state 42
+    INTEGER  shift, and go to state 43
+    LPAREN   shift, and go to state 10
+
+    Factor  go to state 76
+
+
+State 56
+
+   53 Trm: Trm MULTIPLY • Factor
+
+    ID       shift, and go to state 42
+    INTEGER  shift, and go to state 43
+    LPAREN   shift, and go to state 10
+
+    Factor  go to state 77
+
+
+State 57
+
+   42 Expr: UnaryOp Expr •
+
+    $default  reduce using rule 42 (Expr)
+
+
+State 58
+
+   36 ArrayExpr: ID • LBRACKET INTEGER RBRACKET EQ Primary
+   37          | ID • EQ ID LBRACKET INTEGER RBRACKET
+   37          | ID EQ ID • LBRACKET INTEGER RBRACKET
+   43 Expr: ID • EQ Expr
+   44 FunCall: ID • LPAREN ParamList RPAREN
+   45 Primary: ID •
+   55 Factor: ID •
+
+    EQ        shift, and go to state 35
+    LBRACKET  shift, and go to state 78
+    LPAREN    shift, and go to state 37
+
+    SEMICOLON  reduce using rule 45 (Primary)
+    SEMICOLON  [reduce using rule 55 (Factor)]
+    $default   reduce using rule 55 (Factor)
+
+
+State 59
+
+   43 Expr: ID EQ Expr •
+
+    $default  reduce using rule 43 (Expr)
+
+
+State 60
+
+   36 ArrayExpr: ID LBRACKET INTEGER • RBRACKET EQ Primary
+
+    RBRACKET  shift, and go to state 79
+
+
+State 61
+
+   45 Primary: ID •
+
+    $default  reduce using rule 45 (Primary)
+
+
+State 62
+
+   47 Primary: INTEGER •
+
+    $default  reduce using rule 47 (Primary)
+
+
+State 63
+
+   60 ParamList: Primary • $@3 ParamList
+
+    $default  reduce using rule 59 ($@3)
+
+    $@3  go to state 80
+
+
+State 64
+
+   44 FunCall: ID LPAREN ParamList • RPAREN
+
+    RPAREN  shift, and go to state 81
+
+
+State 65
+
+   28 Stmt: WRITE Expr SEMICOLON •
+
+    $default  reduce using rule 28 (Stmt)
+
+
+State 66
+
+   30 Stmt: SWRITE STRING SEMICOLON •
+
+    $default  reduce using rule 30 (Stmt)
+
+
+State 67
+
+   12 FunDecl: FUNC Type ID • LPAREN $@1 ParamDecList RPAREN Block
+
+    LPAREN  shift, and go to state 82
+
+
+State 68
+
+   32 IfStmt: IF LPAREN Condition • RPAREN Block $@2 Else
+
+    RPAREN  shift, and go to state 83
+
+
+State 69
+
+   35 Condition: Primary • LOGIC Primary
+
+    LOGIC  shift, and go to state 84
+
+
+State 70
+
+   57 Factor: LPAREN MathExpr RPAREN •
+
+    $default  reduce using rule 57 (Factor)
+
+
+State 71
+
+   27 Stmt: RETURN Expr SEMICOLON •
+
+    $default  reduce using rule 27 (Stmt)
+
+
+State 72
+
+    7 VarDecl: Type ID SEMICOLON •
+
+    $default  reduce using rule 7 (VarDecl)
+
+
+State 73
+
+    8 VarDecl: Type ID LBRACKET • INTEGER RBRACKET SEMICOLON
+
+    INTEGER  shift, and go to state 85
+
+
+State 74
+
+   51 MathExpr: MathExpr PLUS Trm •
+   53 Trm: Trm • MULTIPLY Factor
+   54    | Trm • DIVIDE Factor
+
+    DIVIDE    shift, and go to state 55
+    MULTIPLY  shift, and go to state 56
+
+    $default  reduce using rule 51 (MathExpr)
+
+
+State 75
+
+   50 MathExpr: MathExpr MINUS Trm •
+   53 Trm: Trm • MULTIPLY Factor
+   54    | Trm • DIVIDE Factor
+
+    DIVIDE    shift, and go to state 55
+    MULTIPLY  shift, and go to state 56
+
+    $default  reduce using rule 50 (MathExpr)
+
+
+State 76
+
+   54 Trm: Trm DIVIDE Factor •
+
+    $default  reduce using rule 54 (Trm)
+
+
+State 77
+
+   53 Trm: Trm MULTIPLY Factor •
+
+    $default  reduce using rule 53 (Trm)
+
+
+State 78
+
+   36 ArrayExpr: ID LBRACKET • INTEGER RBRACKET EQ Primary
+   37          | ID EQ ID LBRACKET • INTEGER RBRACKET
+
+    INTEGER  shift, and go to state 86
+
+
+State 79
+
+   36 ArrayExpr: ID LBRACKET INTEGER RBRACKET • EQ Primary
+
+    EQ  shift, and go to state 87
+
+
+State 80
+
+   60 ParamList: Primary $@3 • ParamList
+
+    ID         shift, and go to state 61
+    INTEGER    shift, and go to state 62
+    DECIMAL    shift, and go to state 3
+    CHARACTER  shift, and go to state 16
+
+    $default  reduce using rule 58 (ParamList)
+
+    Primary    go to state 63
+    ParamList  go to state 88
+
+
+State 81
+
+   44 FunCall: ID LPAREN ParamList RPAREN •
+
+    $default  reduce using rule 44 (FunCall)
+
+
+State 82
+
+   12 FunDecl: FUNC Type ID LPAREN • $@1 ParamDecList RPAREN Block
+
+    $default  reduce using rule 11 ($@1)
+
+    $@1  go to state 89
+
+
+State 83
+
+   32 IfStmt: IF LPAREN Condition RPAREN • Block $@2 Else
+
+    LBRACE  shift, and go to state 90
+
+    Block  go to state 91
+
+
+State 84
+
+   35 Condition: Primary LOGIC • Primary
+
+    ID         shift, and go to state 61
+    INTEGER    shift, and go to state 62
+    DECIMAL    shift, and go to state 3
+    CHARACTER  shift, and go to state 16
+
+    Primary  go to state 92
+
+
+State 85
+
+    8 VarDecl: Type ID LBRACKET INTEGER • RBRACKET SEMICOLON
+
+    RBRACKET  shift, and go to state 93
+
+
+State 86
+
+   36 ArrayExpr: ID LBRACKET INTEGER • RBRACKET EQ Primary
+   37          | ID EQ ID LBRACKET INTEGER • RBRACKET
+
+    RBRACKET  shift, and go to state 94
+
+
+State 87
+
+   36 ArrayExpr: ID LBRACKET INTEGER RBRACKET EQ • Primary
+
+    ID         shift, and go to state 61
+    INTEGER    shift, and go to state 62
+    DECIMAL    shift, and go to state 3
+    CHARACTER  shift, and go to state 16
+
+    Primary  go to state 95
+
+
+State 88
+
+   60 ParamList: Primary $@3 ParamList •
+
+    $default  reduce using rule 60 (ParamList)
+
+
+State 89
+
+   12 FunDecl: FUNC Type ID LPAREN $@1 • ParamDecList RPAREN Block
+
+    INT    shift, and go to state 11
+    CHAR   shift, and go to state 12
+    FLOAT  shift, and go to state 13
+
+    $default  reduce using rule 13 (ParamDecList)
+
+    ParamDecList      go to state 96
+    ParamDecListTail  go to state 97
+    ParamDecl         go to state 98
+    Type              go to state 99
+
+
+State 90
+
+   18 Block: LBRACE • DeclList RBRACE
+
+    ID         shift, and go to state 1
+    INTEGER    shift, and go to state 2
+    DECIMAL    shift, and go to state 3
+    SEMICOLON  shift, and go to state 4
+    WRITE      shift, and go to state 5
+    SWRITE     shift, and go to state 6
+    FUNC       shift, and go to state 7
+    IF         shift, and go to state 8
+    MINUS      shift, and go to state 9
+    LPAREN     shift, and go to state 10
+    INT        shift, and go to state 11
+    CHAR       shift, and go to state 12
+    FLOAT      shift, and go to state 13
+    RETURN     shift, and go to state 14
+    WRITELN    shift, and go to state 15
+    CHARACTER  shift, and go to state 16
+
+    DeclList     go to state 100
+    Decl         go to state 19
+    VarDecl      go to state 20
+    FunDeclList  go to state 21
+    FunDecl      go to state 22
+    Type         go to state 23
+    StmtList     go to state 24
+    Stmt         go to state 25
+    IfStmt       go to state 26
+    ArrayExpr    go to state 27
+    Expr         go to state 28
+    FunCall      go to state 29
+    Primary      go to state 30
+    MathExpr     go to state 31
+    Trm          go to state 32
+    Factor       go to state 33
+    UnaryOp      go to state 34
+
+
+State 91
+
+   32 IfStmt: IF LPAREN Condition RPAREN Block • $@2 Else
+
+    $default  reduce using rule 31 ($@2)
+
+    $@2  go to state 101
+
+
+State 92
+
+   35 Condition: Primary LOGIC Primary •
+
+    $default  reduce using rule 35 (Condition)
+
+
+State 93
+
+    8 VarDecl: Type ID LBRACKET INTEGER RBRACKET • SEMICOLON
+
+    SEMICOLON  shift, and go to state 102
+
+
+State 94
+
+   36 ArrayExpr: ID LBRACKET INTEGER RBRACKET • EQ Primary
+   37          | ID EQ ID LBRACKET INTEGER RBRACKET •
+
+    EQ  shift, and go to state 87
+
+    $default  reduce using rule 37 (ArrayExpr)
+
+
+State 95
+
+   36 ArrayExpr: ID LBRACKET INTEGER RBRACKET EQ Primary •
+
+    $default  reduce using rule 36 (ArrayExpr)
+
+
+State 96
+
+   12 FunDecl: FUNC Type ID LPAREN $@1 ParamDecList • RPAREN Block
+
+    RPAREN  shift, and go to state 103
+
+
+State 97
+
+   14 ParamDecList: ParamDecListTail •
+
+    $default  reduce using rule 14 (ParamDecList)
+
+
+State 98
+
+   15 ParamDecListTail: ParamDecl •
+   16                 | ParamDecl • ParamDecListTail
+
+    INT    shift, and go to state 11
+    CHAR   shift, and go to state 12
+    FLOAT  shift, and go to state 13
+
+    $default  reduce using rule 15 (ParamDecListTail)
+
+    ParamDecListTail  go to state 104
+    ParamDecl         go to state 98
+    Type              go to state 99
+
+
+State 99
+
+   17 ParamDecl: Type • ID
+
+    ID  shift, and go to state 105
+
+
+State 100
+
+   18 Block: LBRACE DeclList • RBRACE
+
+    RBRACE  shift, and go to state 106
+
+
+State 101
+
+   32 IfStmt: IF LPAREN Condition RPAREN Block $@2 • Else
+
+    ELSE  shift, and go to state 107
+
+    $default  reduce using rule 33 (Else)
+
+    Else  go to state 108
+
+
+State 102
+
+    8 VarDecl: Type ID LBRACKET INTEGER RBRACKET SEMICOLON •
+
+    $default  reduce using rule 8 (VarDecl)
+
+
+State 103
+
+   12 FunDecl: FUNC Type ID LPAREN $@1 ParamDecList RPAREN • Block
+
+    LBRACE  shift, and go to state 90
+
+    Block  go to state 109
+
+
+State 104
+
+   16 ParamDecListTail: ParamDecl ParamDecListTail •
+
+    $default  reduce using rule 16 (ParamDecListTail)
+
+
+State 105
+
+   17 ParamDecl: Type ID •
+
+    $default  reduce using rule 17 (ParamDecl)
+
+
+State 106
+
+   18 Block: LBRACE DeclList RBRACE •
+
+    $default  reduce using rule 18 (Block)
+
+
+State 107
+
+   34 Else: ELSE • Block
+
+    LBRACE  shift, and go to state 90
+
+    Block  go to state 110
+
+
+State 108
+
+   32 IfStmt: IF LPAREN Condition RPAREN Block $@2 Else •
+
+    $default  reduce using rule 32 (IfStmt)
+
+
+State 109
+
+   12 FunDecl: FUNC Type ID LPAREN $@1 ParamDecList RPAREN Block •
+
+    $default  reduce using rule 12 (FunDecl)
+
+
+State 110
+
+   34 Else: ELSE Block •
+
+    $default  reduce using rule 34 (Else)

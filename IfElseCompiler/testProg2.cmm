@@ -1,0 +1,31 @@
+/* IF ELSE COMPILER */
+
+int x;
+char y;
+x = 5;
+
+func int addValue(int num1 int num2){
+    int result;
+    result = num1 + num2;
+    return result;
+}
+func int main(){
+    int result1;
+    if (x > 0){
+        result1 = addValue(x 5);
+        swrite "result:";
+        write result1;
+    }
+    else{
+        swrite "This Shouldnt Print";
+    }
+    if (x < 0){
+        swrite "Hello";
+    }
+    else{
+        writeln;
+        swrite "Hello World";
+    }
+    return 0;
+}
+
