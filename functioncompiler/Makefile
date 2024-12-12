@@ -1,6 +1,6 @@
 all: clean parser
 
-run: clean parser1
+run: clean parser
 
 parser.tab.c parser.tab.h:	parser.y
 	bison -t -v -d parser.y
