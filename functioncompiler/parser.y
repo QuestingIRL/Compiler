@@ -844,7 +844,7 @@ int main(int argc, char**argv)
 {
 
 
-	printf("\n\n##### COMPILER STARTED #####\n\n");
+	printf("\n\nStart of Compiler\n\n");
 
 	// Initialize IR File
 	initIRcodeFile();
