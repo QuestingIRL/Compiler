@@ -1,1 +1,14 @@
+This Compiler shows our While Loop Addition. 
+To run this clone the repository using git clone
 
+Make sure ubuntu and bison are downloaded.
+
+Navigate to the correct file with cd.
+
+Run the following to test each test program
+
+make 1
+
+make 2 
+
+make 3
